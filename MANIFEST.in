@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include intelebot *.css
+recursive-include intelebot *.csv
+recursive-include intelebot *.html
+recursive-include intelebot *.ico
+recursive-include intelebot *.js
+recursive-include intelebot *.json
+recursive-include intelebot *.md
+recursive-include intelebot *.png
+recursive-include intelebot *.py
+recursive-include intelebot *.svg
+recursive-include intelebot *.txt
+recursive-exclude intelebot *.pyc
