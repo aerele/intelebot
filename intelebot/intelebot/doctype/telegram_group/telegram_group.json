@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "autoname": "TG.#####",
+ "creation": "2021-01-26 17:03:17.507153",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "group_name",
+  "column_break_2",
+  "chat_id",
+  "section_break_4",
+  "bot_mapping",
+  "section_break_6",
+  "customer_group_mapping"
+ ],
+ "fields": [
+  {
+   "fieldname": "group_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Group Name"
+  },
+  {
+   "fieldname": "chat_id",
+   "fieldtype": "Data",
+   "label": "Chat ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "bot_mapping",
+   "fieldtype": "Table",
+   "label": "Bot Mapping",
+   "options": "Bot Mapping"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "customer_group_mapping",
+   "fieldtype": "Table",
+   "label": "Customer Group Mapping",
+   "options": "Customer Group Mapping"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-01-27 00:41:13.636569",
+ "modified_by": "Administrator",
+ "module": "Intelebot",
+ "name": "Telegram Group",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "autoname": "field:bot_username",
+ "creation": "2021-01-26 16:21:53.288237",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "bot_name",
+  "api_token",
+  "bot_type",
+  "column_break_3",
+  "bot_username",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "description": "Name displayed in telegram contact details and elsewhere.",
+   "fieldname": "bot_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Bot Name",
+   "reqd": 1
+  },
+  {
+   "description": "Name mentioned in t.me links.",
+   "fieldname": "bot_username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Bot Username",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "api_token",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "API Token",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bot_type",
+   "fieldtype": "Table MultiSelect",
+   "label": "Bot Type",
+   "options": "Multi Bot Type"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-01-26 18:01:23.671345",
+ "modified_by": "Administrator",
+ "module": "Intelebot",
+ "name": "Telegram Bot",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
