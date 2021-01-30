@@ -59,7 +59,7 @@ app_license = "MIT"
 # ------------
 
 # before_install = "intelebot.install.before_install"
-# after_install = "intelebot.install.after_install"
+after_install = "intelebot.intelebot.doctype.bot_type.bot_type.create_default_bot_type"
 
 # Desk Notifications
 # ------------------
