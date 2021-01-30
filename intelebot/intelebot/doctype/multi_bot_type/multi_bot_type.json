@@ -5,20 +5,21 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "bot_type"
+  "bot_type_name"
  ],
  "fields": [
   {
-   "fieldname": "bot_type",
+   "fieldname": "bot_type_name",
    "fieldtype": "Link",
-   "label": "Bot Type",
+   "in_list_view": 1,
+   "label": "Bot Type Name",
    "options": "Bot Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-01-26 17:58:24.237556",
+ "modified": "2021-01-28 12:35:17.823625",
  "modified_by": "Administrator",
  "module": "Intelebot",
  "name": "Multi Bot Type",
