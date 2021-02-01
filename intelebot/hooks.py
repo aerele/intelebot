@@ -102,7 +102,13 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
+	"cron": {
+		"0/30 * * * *": [
+		"intelebot.intelebot.doctype.telegram_bot.telegram_bot.create_telegram_chat",
+		"intelebot.intelebot.doctype.telegram_bot.telegram_bot.process_unsent_document"
+		]
+	}
 # 	"all": [
 # 		"intelebot.tasks.all"
 # 	],
@@ -118,7 +124,7 @@ app_license = "MIT"
 # 	"monthly": [
 # 		"intelebot.tasks.monthly"
 # 	]
-# }
+}
 
 # Testing
 # -------
