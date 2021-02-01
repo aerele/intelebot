@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "autoname": "TC.#####",
+ "creation": "2021-01-30 13:58:32.760901",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "first_name",
+  "last_name",
+  "username",
+  "column_break_6",
+  "chat_id",
+  "chat_type",
+  "bot"
+ ],
+ "fields": [
+  {
+   "fieldname": "chat_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Chat Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bot",
+   "fieldtype": "Data",
+   "label": "Bot",
+   "read_only": 1
+  },
+  {
+   "fieldname": "chat_id",
+   "fieldtype": "Data",
+   "label": "Chat ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "UserName",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-02-01 12:39:48.001868",
+ "modified_by": "Administrator",
+ "module": "Intelebot",
+ "name": "Telegram Chat",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
