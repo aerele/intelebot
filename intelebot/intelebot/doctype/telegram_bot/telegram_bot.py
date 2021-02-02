@@ -71,28 +71,16 @@ def get_updates(bot_doc_list):
 		update_list[bot_doc.name] = set(chats)
 	return update_list
 
-def process_unsent_document():
-	# Called every 30 minutes via hooks
-	unsent_doc_list = frappe.db.get_all('Send Document',{'status':['in', ['Queued','Error']]},['name'])
-	for doc_name in unsent_doc_list:
-		unsent_doc = frappe.get_doc('Send Document',doc_name['name'])
-		if not unsent_doc.resend_count > 10:
-			send_document(unsent_doc)
-
-def send_document(unsent_doc):
-	token = frappe.db.get_value('Telegram Bot', unsent_doc.bot, 'api_token')
-	chat_id = frappe.db.get_value('Telegram Chat', unsent_doc.telegram_chat, 'chat_id')
-	file_name = frappe.db.get_value('File', unsent_doc.file, 'file_name')
-	if unsent_doc.status == 'Error':
-		unsent_doc.resend_count += 1
+def send_document(token, chat_id, file_name = None, file_url = None):
 	try:
 		bot = telegram.Bot(token = token)
-		res = bot.sendDocument(chat_id, document=open(get_files_path(file_name, is_private=0), "rb"))
-		if res:
-			unsent_doc.status = 'Completed'
-			if unsent_doc.error_message:
-				unsent_doc.error_message = None
+		if file_name:
+			res = bot.sendDocument(chat_id, document=open(get_files_path(file_name, is_private=0), "rb"))
+		if file_url:
+			res = bot.sendDocument(chat_id, file_url)
+		if (file_name or file_url) and res:
+			return {'status': 'Sent'}
+		else:
+			return {'status': 'Error', 'message': 'Mention file_url or file_name to send document'}
 	except:
-		unsent_doc.status = 'Error'
-		unsent_doc.error_message = frappe.get_traceback()
-	unsent_doc.save()
+		return {'status': 'Error', 'message': frappe.get_traceback()}
