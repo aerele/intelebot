@@ -26,6 +26,7 @@
   {
    "fieldname": "bot",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Bot",
    "read_only": 1
   },
@@ -38,6 +39,7 @@
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "First Name",
    "read_only": 1
   },
@@ -50,7 +52,6 @@
   {
    "fieldname": "username",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "UserName",
    "read_only": 1
   },
@@ -69,7 +70,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-02-01 12:39:48.001868",
+ "modified": "2021-02-03 16:55:54.831946",
  "modified_by": "Administrator",
  "module": "Intelebot",
  "name": "Telegram Chat",
@@ -88,6 +89,7 @@
    "write": 1
   }
  ],
+ "search_fields": "first_name,title",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 import telegram
 from frappe.model.document import Document
-from frappe.utils import get_files_path
 
 class TelegramBot(Document):
 	pass
@@ -70,17 +69,3 @@ def get_updates(bot_doc_list):
 
 		update_list[bot_doc.name] = set(chats)
 	return update_list
-
-def send_document(token, chat_id, file_name = None, file_url = None):
-	try:
-		bot = telegram.Bot(token = token)
-		if file_name:
-			res = bot.sendDocument(chat_id, document=open(get_files_path(file_name, is_private=0), "rb"))
-		if file_url:
-			res = bot.sendDocument(chat_id, file_url)
-		if (file_name or file_url) and res:
-			return {'status': 'Sent'}
-		else:
-			return {'status': 'Error', 'message': 'Mention file_url or file_name to send document'}
-	except:
-		return {'status': 'Error', 'message': frappe.get_traceback()}

@@ -34,9 +34,9 @@ In Intelebot,
 
 2. Once the new `Telegram Bot` document created. At every half an hour,  ``telegram channel``, ``groups``, ``supergroups``, and ``private`` chats associated with the corresponding bots are created automatically via `Bot API` under ``Telegram Chat``.
 
-3. Use the `send_document` function to send documents like gif, pdf, and zip. In two ways,
-    1. Passing `File URL`
-    2. Pass `file_name` of the frappe's File doctype.
+3. Create a new `Send Document` with the necessary fields. At every half an hour the specified file gets sent to the corresponding chat. Currently, it supports gif, pdf, and zip files.
+
+4. In `Send Document` if you enabled `delete_linked_file_after_sent` means, the linked file will be deleted in the system once it sent to the telegram chat.
 
 ## Dependencies
 
