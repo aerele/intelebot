@@ -5,18 +5,27 @@
 from __future__ import unicode_literals
 import frappe
 import telegram
+import json
+from six import string_types
 from frappe.model.document import Document
 from frappe.utils import get_files_path
+from frappe import _
 
 class SendDocument(Document):
+	def after_insert(self):
+		if self.file:
+			self.send_document()
+		else:
+			frappe.throw(_("Please select File"))
+
 	def send_document(self):
 		try:
 			token = frappe.db.get_value('Telegram Bot', self.bot, 'api_token')
 			chat_id = frappe.db.get_value('Telegram Chat', self.telegram_chat, 'chat_id')
 			file_name = frappe.db.get_value('File', self.file, 'file_name')
-			bot = telegram.Bot(token = token)
 			if self.status == 'Error':
 				self.resend_count += 1
+			bot = telegram.Bot(token = token)
 			res = bot.sendDocument(chat_id, document=open(get_files_path(file_name, is_private=0), "rb"))
 			if res:
 				self.status = 'Completed'
@@ -38,4 +47,17 @@ def process_unsent_document():
 	for doc_name in unsent_doc_list:
 		doc = frappe.get_doc('Send Document', doc_name['name'])
 		if not doc.resend_count > 10 and doc.file:
+			if doc.error_message and not doc.error_message.split('\n')[-2] == 'telegram.error.TimedOut: Timed out':
+				continue
 			doc.send_document()
+
+@frappe.whitelist()
+def send_doc_to_telegram(doc):
+	if isinstance(doc, string_types):
+		doc = frappe._dict(json.loads(doc))
+
+	if doc.file:
+		doc = frappe.get_doc('Send Document', doc.name)
+		doc.send_document()
+	else:
+		frappe.throw(_("Please select File"))

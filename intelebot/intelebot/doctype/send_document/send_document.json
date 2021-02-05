@@ -52,6 +52,7 @@
   {
    "fieldname": "resend_count",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Resend Count",
    "read_only": 1
   },
@@ -59,7 +60,8 @@
    "depends_on": "eval:doc.status == 'Error'",
    "fieldname": "error_message",
    "fieldtype": "Text",
-   "label": "Error Message"
+   "label": "Error Message",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -70,7 +72,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-02-04 07:40:53.677138",
+ "modified": "2021-02-04 17:59:54.348951",
  "modified_by": "Administrator",
  "module": "Intelebot",
  "name": "Send Document",
