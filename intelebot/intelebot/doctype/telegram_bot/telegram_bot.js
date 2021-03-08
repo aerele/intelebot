@@ -2,7 +2,11 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Telegram Bot', {
-	// refresh: function(frm) {
-
-	// }
+	fetch_now: function(frm){
+		frappe.call({
+			method: "intelebot.intelebot.doctype.telegram_bot.telegram_bot.create_telegram_chat",
+			args: {bot_name: frm.doc.name},
+			freeze: true
+		})
+	}
 });

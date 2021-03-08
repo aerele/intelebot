@@ -6,19 +6,30 @@ from __future__ import unicode_literals
 import frappe
 import telegram
 from frappe.model.document import Document
+from frappe import _, msgprint
 
 class TelegramBot(Document):
 	pass
 
-def create_telegram_chat():
+@frappe.whitelist()
+def create_telegram_chat(bot_name = None):
 	# Called every 30 minutes via hooks
 	bot_doc_list = []
-	bots = frappe.db.get_all('Telegram Bot',{'disabled':0},['name'])
+	if bot_name:
+		bot_doc_list.append(frappe.get_doc('Telegram Bot',bot_name))
+	else:
+		bots = frappe.db.get_all('Telegram Bot',{'disabled':0},['name'])
 
-	for bot in bots:
-		bot_doc_list.append(frappe.get_doc('Telegram Bot', bot['name']))
+		for bot in bots:
+			bot_doc_list.append(frappe.get_doc('Telegram Bot', bot['name']))
 
 	updates = get_updates(bot_doc_list)
+
+	if bot_name:
+		if bot_name in updates:
+			msgprint(_("Telegram chats created"))
+		else:
+			frappe.throw(_('An error occured. Check error log for more info'))
 
 	for bot in updates.keys():
 		for chat in updates[bot]:
@@ -62,10 +73,11 @@ def get_updates(bot_doc_list):
 				
 				bot_doc.last_update_id = update['update_id']
 			bot_doc.save()
+			if chats:
+				update_list[bot_doc.name] = set(chats)
 
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), f'{bot_doc.name} get updates error')
 			continue
 
-		update_list[bot_doc.name] = set(chats)
 	return update_list
