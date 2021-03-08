@@ -10,7 +10,8 @@
   "api_token",
   "column_break_3",
   "disabled",
-  "last_update_id"
+  "last_update_id",
+  "fetch_now"
  ],
  "fields": [
   {
@@ -46,11 +47,17 @@
    "hidden": 1,
    "label": "Last Update ID",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "fetch_now",
+   "fieldtype": "Button",
+   "label": "Fetch Now"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-02-01 12:55:39.563467",
+ "modified": "2021-03-08 14:52:21.628182",
  "modified_by": "Administrator",
  "module": "Intelebot",
  "name": "Telegram Bot",
