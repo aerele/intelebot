@@ -33,13 +33,13 @@ class SendDocument(Document):
 				if self.delete_linked_file_after_sent:
 					file_name = self.file
 					self.file = None
-					self.save()
+					self.save(ignore_permissions=True)
 					frappe.delete_doc('File', file_name, force=1)
 
 		except:
 			self.status = 'Error'
 			self.error_message = frappe.get_traceback()
-		self.save()
+		self.save(ignore_permissions=True)
 
 def process_unsent_document():
 	# Called every 30 minutes via hooks
