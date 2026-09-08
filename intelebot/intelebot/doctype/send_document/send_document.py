@@ -1,63 +1,89 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2021, Aerele Technologies Private Limited and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import telegram
 import json
-from six import string_types
-from frappe.model.document import Document
-from frappe.utils import get_files_path
+
+import frappe
 from frappe import _
+from frappe.model.document import Document
+from frappe.utils import cint
+
+from intelebot import telegram_client
+
 
 class SendDocument(Document):
 	def after_insert(self):
-		if self.file:
-			self.send_document()
-		else:
+		if not self.file:
 			frappe.throw(_("Please select File"))
+		self.send_document()
 
 	def send_document(self):
+		if self.status == "Completed":
+			return
+		if self.status == "Error":
+			self.resend_count = cint(self.resend_count) + 1
 		try:
-			token = frappe.db.get_value('Telegram Bot', self.bot, 'api_token')
-			chat_id = frappe.db.get_value('Telegram Chat', self.telegram_chat, 'chat_id')
-			file_name = frappe.db.get_value('File', self.file, 'file_name')
-			if self.status == 'Error':
-				self.resend_count += 1
-			bot = telegram.Bot(token = token)
-			res = bot.sendDocument(chat_id, document=open(get_files_path(file_name, is_private=0), "rb"))
-			if res:
-				self.status = 'Completed'
-				self.error_message = None
-				if self.delete_linked_file_after_sent:
-					file_name = self.file
-					self.file = None
-					self.save(ignore_permissions=True)
-					frappe.delete_doc('File', file_name, force=1)
-
-		except:
-			self.status = 'Error'
+			token = frappe.db.get_value("Telegram Bot", self.bot, "api_token")
+			chat_id = frappe.db.get_value("Telegram Chat", self.telegram_chat, "chat_id")
+			file_doc = frappe.get_doc("File", self.file)
+			# Preserve the public-local-file contract, resolving the actual URL
+			# instead of guessing the disk path from the display filename.
+			if file_doc.is_private or file_doc.is_remote_file:
+				frappe.throw(_("Please select a public file stored on this site"))
+			result = telegram_client.send_document(token, chat_id, file_doc.get_full_path())
+			if not result:
+				raise RuntimeError("Telegram did not confirm document delivery")
+		except Exception:
+			self.status = "Error"
 			self.error_message = frappe.get_traceback()
+			self.save(ignore_permissions=True)
+			return
+
+		self.status = "Completed"
+		self.error_message = None
 		self.save(ignore_permissions=True)
+		if self.delete_linked_file_after_sent:
+			file_name = self.file
+			frappe.db.savepoint("intelebot_file_cleanup")
+			try:
+				self.file = None
+				self.save(ignore_permissions=True)
+				frappe.delete_doc("File", file_name, force=1)
+			except Exception:
+				# Telegram already accepted the upload. Cleanup failure must not
+				# turn it into an Error and trigger a duplicate scheduled send.
+				frappe.db.rollback(save_point="intelebot_file_cleanup")
+				self.file = file_name
+				self.error_message = frappe.get_traceback()
+				self.save(ignore_permissions=True)
+				frappe.log_error(title="Telegram file cleanup failed", message=self.error_message)
+
 
 def process_unsent_document():
-	# Called every 30 minutes via hooks
-	unsent_doc_list = frappe.db.get_all('Send Document',{'status':['in', ['Queued','Error']]},['name'])
-	for doc_name in unsent_doc_list:
-		doc = frappe.get_doc('Send Document', doc_name['name'])
-		if not doc.resend_count > 10 and doc.file:
-			if doc.error_message and not doc.error_message.split('\n')[-2] == 'telegram.error.TimedOut: Timed out':
+	# Preserve scheduled retries for queued items and timed-out sends only.
+	unsent = frappe.get_all(
+		"Send Document", filters={"status": ["in", ["Queued", "Error"]]}, fields=["name"]
+	)
+	for row in unsent:
+		doc = frappe.get_doc("Send Document", row.name)
+		if cint(doc.resend_count) > 10 or not doc.file:
+			continue
+		if doc.error_message:
+			lines = doc.error_message.strip().splitlines()
+			if not lines or not lines[-1].startswith("telegram.error.TimedOut:"):
 				continue
-			doc.send_document()
+		doc.send_document()
+
 
 @frappe.whitelist()
 def send_doc_to_telegram(doc):
-	if isinstance(doc, string_types):
-		doc = frappe._dict(json.loads(doc))
-
-	if doc.file:
-		doc = frappe.get_doc('Send Document', doc.name)
-		doc.send_document()
-	else:
+	if isinstance(doc, str):
+		doc = json.loads(doc)
+	# Read persisted state rather than trusting submitted status/file fields.
+	stored = frappe.get_doc("Send Document", doc.get("name"))
+	stored.check_permission("write")
+	if stored.status == "Completed":
+		return
+	if not stored.file:
 		frappe.throw(_("Please select File"))
+	stored.send_document()

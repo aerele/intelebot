@@ -1,83 +1,81 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2021, Aerele Technologies Private Limited and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
-import telegram
-from frappe.model.document import Document
 from frappe import _, msgprint
+from frappe.model.document import Document
+from frappe.utils import cint
+
+from intelebot import telegram_client
+
 
 class TelegramBot(Document):
 	pass
 
-@frappe.whitelist()
-def create_telegram_chat(bot_name = None):
-	# Called every 30 minutes via hooks
-	bot_doc_list = []
-	if bot_name:
-		bot_doc_list.append(frappe.get_doc('Telegram Bot',bot_name))
-	else:
-		bots = frappe.db.get_all('Telegram Bot',{'disabled':0},['name'])
 
-		for bot in bots:
-			bot_doc_list.append(frappe.get_doc('Telegram Bot', bot['name']))
+@frappe.whitelist()
+def create_telegram_chat(bot_name=None):
+	# Called every 30 minutes via hooks, or by the Fetch Now button.
+	if bot_name:
+		bot_doc = frappe.get_doc("Telegram Bot", bot_name)
+		bot_doc.check_permission("write")
+		bot_doc_list = [bot_doc]
+	else:
+		frappe.only_for("System Manager")
+		bots = frappe.get_all("Telegram Bot", filters={"disabled": 0}, fields=["name"])
+		bot_doc_list = [frappe.get_doc("Telegram Bot", bot.name) for bot in bots]
 
 	updates = get_updates(bot_doc_list)
+	for bot, chats in updates.items():
+		for chat in chats:
+			existing = frappe.db.get_value("Telegram Chat", {"chat_id": str(chat.id), "bot": bot})
+			if existing:
+				tele_chat = frappe.get_doc("Telegram Chat", existing)
+			else:
+				tele_chat = frappe.get_doc({
+					"doctype": "Telegram Chat",
+					"chat_id": str(chat.id),
+					"bot": bot,
+				})
+			assign_values_based_on_type(tele_chat, chat)
 
 	if bot_name:
 		if bot_name in updates:
 			msgprint(_("Telegram chats created"))
 		else:
-			frappe.throw(_('An error occured. Check error log for more info'))
+			frappe.throw(_("An error occurred. Check error log for more info"))
 
-	for bot in updates.keys():
-		for chat in updates[bot]:
-			existing_tele_chat = frappe.db.get_value("Telegram Chat", {'chat_id':chat['id'],'bot':bot})
-			if not existing_tele_chat:
-				tele_chat = frappe.get_doc({
-					'doctype': 'Telegram Chat',
-					'chat_id':chat['id'],
-					'bot':bot,
-					'chat_type':chat['type']})
-				assign_values_based_on_type(tele_chat, chat)
-			else:
-				doc = frappe.get_doc('Telegram Chat',{'chat_id':chat['id'],'bot':bot})
-				assign_values_based_on_type(doc, chat)
 
 def assign_values_based_on_type(tele_chat, chat):
-	if tele_chat.chat_type == 'private':
-		tele_chat.first_name = chat['first_name']
-		tele_chat.last_name = chat['last_name']
-		tele_chat.username = chat['username']
-	if tele_chat.chat_type == 'supergroup' or 'channel':
-		tele_chat.title = chat['title']
-		tele_chat.username = chat['username']
-	if tele_chat.chat_type == 'group':
-		tele_chat.title = chat['title']
+	# Optional fields are absent for many private/group chats. Retain support
+	# for dictionaries accepted by the original helper.
+	data = chat.to_dict() if hasattr(chat, "to_dict") else chat
+	tele_chat.chat_type = data.get("type", tele_chat.chat_type)
+	tele_chat.first_name = data.get("first_name") if tele_chat.chat_type == "private" else None
+	tele_chat.last_name = data.get("last_name") if tele_chat.chat_type == "private" else None
+	tele_chat.title = data.get("title") if tele_chat.chat_type in {"group", "supergroup", "channel"} else None
+	tele_chat.username = data.get("username")
 	tele_chat.save()
+
 
 def get_updates(bot_doc_list):
 	update_list = {}
 	for bot_doc in bot_doc_list:
 		try:
-			chats = []
-			bot = telegram.Bot(token = bot_doc.api_token)
-			updates = bot.get_updates(limit=100,offset = bot_doc.last_update_id)
+			# The existing field stores the last seen ID, not the next offset.
+			last_id = cint(bot_doc.last_update_id)
+			updates = telegram_client.get_updates(bot_doc.api_token, last_id + 1 if last_id else 0)
+			chats = {}
 			for update in updates:
-				if update['message']:
-					chats.append(update['message']['chat'])
-
-				if update['channel_post']:
-					chats.append(update['channel_post']['chat'])
-				
-				bot_doc.last_update_id = update['update_id']
-			bot_doc.save()
-			if chats:
-				update_list[bot_doc.name] = set(chats)
-
-		except Exception as e:
-			frappe.log_error(frappe.get_traceback(), f'{bot_doc.name} get updates error')
-			continue
-
+				chat = update.effective_chat
+				if chat is not None:
+					chats[chat.id] = chat
+				last_id = max(last_id, update.update_id)
+			if updates:
+				bot_doc.last_update_id = str(last_id)
+				bot_doc.save()
+			# Empty polling is successful too; Fetch Now must not report an error.
+			update_list[bot_doc.name] = set(chats.values())
+		except Exception:
+			frappe.log_error(title=f"{bot_doc.name} get updates error", message=frappe.get_traceback())
 	return update_list
